@@ -1,0 +1,42 @@
+# -----------------------------------------------------------------------------
+# Web Server Framework
+# -----------------------------------------------------------------------------
+Flask
+
+# -----------------------------------------------------------------------------
+# Core Computer Vision and Machine Learning Libraries
+# Using specific, stable versions.
+# -----------------------------------------------------------------------------
+opencv-python==4.8.1.78
+numpy==1.26.4
+Pillow==10.0.0
+
+# -----------------------------------------------------------------------------
+# YOLOv8 for Face Detection
+# Pinning the exact version as requested. Torch is a dependency.
+# -----------------------------------------------------------------------------
+torch==2.0.1
+torchvision==0.15.2
+ultralytics==8.0.186
+
+# -----------------------------------------------------------------------------
+# Face Recognition Stack
+# Dlib is the core C++ engine. face-recognition is the Python wrapper.
+# IMPORTANT: Dlib should be installed with Conda first to avoid build errors.
+# -----------------------------------------------------------------------------
+face-recognition==1.3.0
+face-recognition-models==0.3.0
+cmake
+
+# -----------------------------------------------------------------------------
+# General Machine Learning and Data Handling
+# Common dependencies for data processing and visualization.
+# -----------------------------------------------------------------------------
+scikit-learn==1.3.0
+scikit-image==0.21.0
+matplotlib>=3.3.0
+pandas
+seaborn
+scipy
+tqdm
+pyyaml>=5.3.1

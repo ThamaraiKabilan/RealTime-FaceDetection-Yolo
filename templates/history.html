@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detection History - Face Recognition System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: background 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .refresh-btn {
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .refresh-btn:hover {
+            background: #2980b9;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        th {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9em;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .name-cell {
+            font-weight: 600;
+        }
+
+        .name-known {
+            color: #27ae60;
+        }
+
+        .name-unknown {
+            color: #e74c3c;
+        }
+
+        .confidence-cell {
+            font-weight: 500;
+        }
+
+        .time-cell {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .detector-cell {
+            background: #ecf0f1;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #3498db;
+            font-size: 1.1em;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+            
+            th, td {
+                padding: 10px 5px;
+                font-size: 0.9em;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Detection History</h1>
+            <p>Complete record of all face recognitions</p>
+            <a href="/" class="back-button">← Back to Live Camera</a>
+        </div>
+
+        <div class="content">
+            <div class="stats-grid" id="statsGrid">
+                <div class="loading">Loading statistics...</div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-danger" onclick="clearHistory()">
+                    🗑️ Clear All History
+                </button>
+                <button class="refresh-btn" onclick="loadData()">
+                    🔄 Refresh Data
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Confidence</th>
+                            <th>Detection Time</th>
+                            <th>Detector Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTable">
+                        <tr>
+                            <td colspan="4" class="loading">Loading detection history...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+        });
+
+        async function loadData() {
+            await loadStatistics();
+            await loadHistory();
+        }
+
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/statistics');
+                const stats = await response.json();
+                
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="stat-card">
+                        <h3>Total Detections</h3>
+                        <div class="number">${stats.total_detections}</div>
+                        <div class="label">All Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Known Faces</h3>
+                        <div class="number" style="color: #2ecc71;">${stats.known_detections}</div>
+                        <div class="label">Recognized</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Unknown Faces</h3>
+                        <div class="number" style="color: #e74c3c;">${stats.unknown_detections}</div>
+                        <div class="label">Not Recognized</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Last 24 Hours</h3>
+                        <div class="number">${stats.recent_detections}</div>
+                        <div class="label">Recent Activity</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Top Person</h3>
+                        <div class="number">${stats.top_person}</div>
+                        <div class="label">${stats.top_count} detections</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="stat-card">
+                        <h3>Error</h3>
+                        <div class="number">!</div>
+                        <div class="label">Failed to load stats</div>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/detection_history');
+                const history = await response.json();
+                
+                const tableBody = document.getElementById('historyTable');
+                
+                if (history.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="no-data">
+                                📝 No detection history found. <br>
+                                <small>Start using the camera to see detections here.</small>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                tableBody.innerHTML = '';
+                
+                history.forEach(detection => {
+                    const row = document.createElement('tr');
+                    const nameClass = detection.name === 'Unknown' ? 'name-unknown' : 'name-known';
+                    
+                    row.innerHTML = `
+                        <td class="name-cell ${nameClass}">${detection.name}</td>
+                        <td class="confidence-cell">${detection.confidence}</td>
+                        <td class="time-cell">${detection.time}</td>
+                        <td><span class="detector-cell">${detection.detector}</span></td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading history:', error);
+                document.getElementById('historyTable').innerHTML = `
+                    <tr>
+                        <td colspan="4" class="no-data">
+                            ❌ Error loading detection history
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        async function clearHistory() {
+            if (confirm('Are you sure you want to clear all detection history? This action cannot be undone.')) {
+                try {
+                    const response = await fetch('/api/clear_history', {
+                        method: 'POST'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        alert('History cleared successfully!');
+                        loadData();
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                } catch (error) {
+                    alert('Error clearing history: ' + error.message);
+                }
+            }
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>

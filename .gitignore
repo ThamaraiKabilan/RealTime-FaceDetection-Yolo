@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+
+# Environment
+venv/
+face_env/
+
+# Database and Embeddings (generated automatically)
+*.db
+*.npz
+
+# IDE settings
+.vscode/

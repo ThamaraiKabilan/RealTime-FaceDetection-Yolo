@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Face Recognition</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.2em; opacity: 0.9; }
+        .content { display: grid; grid-template-columns: 1fr 400px; gap: 20px; padding: 20px; }
+        .video-section { background: #f8f9fa; border-radius: 10px; padding: 20px; }
+        .video-container { position: relative; background: #2c3e50; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+        #videoFeed { width: 100%; height: 400px; object-fit: cover; border-radius: 8px; }
+        .video-placeholder { width: 100%; height: 400px; background: #34495e; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2em; border-radius: 8px; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-success:hover { background: #219a52; transform: translateY(-2px); }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; transform: translateY(-2px); }
+        .sidebar { background: #f8f9fa; border-radius: 10px; padding: 20px; }
+        .section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .section h3 { color: #2c3e50; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #3498db; }
+        .detection-list { max-height: 200px; overflow-y: auto; }
+        .detection-item { padding: 10px; margin-bottom: 8px; background: #ecf0f1; border-radius: 6px; border-left: 4px solid #3498db; }
+        .detection-item.unknown { border-left-color: #e74c3c; }
+        .detection-item .name { font-weight: bold; color: #2c3e50; }
+        .detection-item .confidence { color: #27ae60; font-size: 0.9em; }
+        .detection-item .time { color: #7f8c8d; font-size: 0.8em; }
+        .known-people-list { max-height: 150px; overflow-y: auto; }
+        .person-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; margin-bottom: 5px; background: #ecf0f1; border-radius: 6px; }
+        .person-name { font-weight: 500; }
+        .person-count { background: #3498db; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; }
+        .add-face-section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #2c3e50; }
+        .form-group input { width: 100%; padding: 10px; border: 2px solid #bdc3c7; border-radius: 6px; font-size: 1em; transition: border-color 0.3s ease; }
+        .form-group input:focus { outline: none; border-color: #3498db; }
+        .upload-btn { width: 100%; padding: 12px; background: #9b59b6; color: white; border: none; border-radius: 6px; font-size: 1em; font-weight: 600; cursor: pointer; transition: background 0.3s ease; }
+        .upload-btn:hover { background: #8e44ad; }
+        .upload-btn:disabled { background: #95a5a6; cursor: not-allowed; }
+        .status-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
+        .status-active { background: #27ae60; }
+        .status-inactive { background: #e74c3c; }
+        .alert { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-weight: 500; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .navigation { display: flex; gap: 10px; margin-top: 20px; }
+        .navigation a { flex: 1; text-align: center; padding: 12px; background: #34495e; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background 0.3s ease; }
+        .navigation a:hover { background: #2c3e50; }
+        @media (max-width: 768px) { .content { grid-template-columns: 1fr; } .header h1 { font-size: 2em; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Real-Time Face Recognition</h1>
+            <p>Powered by FaceNet</p>
+        </div>
+        <div class="content">
+            <div class="video-section">
+                <div class="video-container">
+                    <img id="videoFeed" src="" alt="Live Video Feed" style="display: none;">
+                    <div class="video-placeholder" id="videoPlaceholder">
+                        📷 Camera is inactive
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="btn btn-success" onclick="startCamera()">
+                        <span class="status-indicator status-inactive" id="statusIndicator"></span>
+                        Start Camera
+                    </button>
+                    <button class="btn btn-danger" onclick="stopCamera()">Stop Camera</button>
+                </div>
+                <div class="section">
+                    <h3>📊 Recent Detections</h3>
+                    <div class="detection-list" id="detectionList"></div>
+                </div>
+                <div class="navigation">
+                    <a href="/detection_history">📈 View Full Detection History</a>
+                </div>
+            </div>
+            <div class="sidebar">
+                <div class="section">
+                    <h3>👥 Known People</h3>
+                    <div class="known-people-list" id="knownPeopleList"></div>
+                </div>
+                <div class="add-face-section">
+                    <h3>➕ Add New Face</h3>
+                    <div id="alertContainer"></div>
+                    <form id="addFaceForm" onsubmit="uploadAndAddFace(event)">
+                        <div class="form-group">
+                            <label for="personName">Person's Name:</label>
+                            <input type="text" id="personName" placeholder="Enter full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="personImage">Photo File:</label>
+                            <input type="file" id="personImage" accept="image/jpeg, image/png" required>
+                        </div>
+                        <button type="submit" class="upload-btn">
+                            📤 Upload & Add Face
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadKnownPeople();
+            setInterval(loadRecentDetections, 3000); // Poll for recent detections
+        });
+
+        async function startCamera() {
+            try {
+                await fetch('/start_camera');
+                document.getElementById('videoFeed').style.display = 'block';
+                document.getElementById('videoPlaceholder').style.display = 'none';
+                document.getElementById('videoFeed').src = '/video_feed?' + new Date().getTime();
+                document.getElementById('statusIndicator').className = 'status-indicator status-active';
+            } catch (error) { showAlert('Error starting camera: ' + error, 'error'); }
+        }
+
+        async function stopCamera() {
+            try {
+                await fetch('/stop_camera');
+                document.getElementById('videoFeed').style.display = 'none';
+                document.getElementById('videoPlaceholder').style.display = 'flex';
+                document.getElementById('videoFeed').src = '';
+                document.getElementById('statusIndicator').className = 'status-indicator status-inactive';
+            } catch (error) { showAlert('Error stopping camera: ' + error, 'error'); }
+        }
+
+        async function loadRecentDetections() {
+            if (!document.hidden && document.getElementById('videoFeed').style.display === 'block') {
+                const response = await fetch('/get_detections');
+                const detections = await response.json();
+                const detectionList = document.getElementById('detectionList');
+                detectionList.innerHTML = '';
+                if (detections.length === 0) {
+                    detectionList.innerHTML = `<div class="detection-item"><div class="name">No faces detected yet</div></div>`;
+                    return;
+                }
+                detections.slice(-5).reverse().forEach(detection => {
+                    const item = document.createElement('div');
+                    item.className = `detection-item ${detection.name.toLowerCase() === 'unknown' ? 'unknown' : ''}`;
+                    item.innerHTML = `
+                        <div class="name">${detection.name}</div>
+                        <div class="confidence">Confidence: ${detection.confidence}</div>
+                        <div class="time">${detection.time}</div>`;
+                    detectionList.appendChild(item);
+                });
+            }
+        }
+
+        async function loadKnownPeople() {
+            const response = await fetch('/get_known_people');
+            const people = await response.json();
+            const knownPeopleList = document.getElementById('knownPeopleList');
+            knownPeopleList.innerHTML = '';
+            if (people.length === 0) {
+                knownPeopleList.innerHTML = `<div class="person-item"><span class="person-name">No known people</span></div>`;
+                return;
+            }
+            people.forEach(person => {
+                const item = document.createElement('div');
+                item.className = 'person-item';
+                item.innerHTML = `
+                    <span class="person-name">${person.name}</span>
+                    <span class="person-count">${person.image_count}</span>`;
+                knownPeopleList.appendChild(item);
+            });
+        }
+
+        async function uploadAndAddFace(event) {
+            event.preventDefault(); // Prevent default form submission
+            const form = document.getElementById('addFaceForm');
+            const nameInput = document.getElementById('personName');
+            const imageInput = document.getElementById('personImage');
+            const submitBtn = form.querySelector('.upload-btn');
+
+            if (!nameInput.value.trim() || imageInput.files.length === 0) {
+                showAlert('Please provide a name and select an image file.', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', nameInput.value.trim());
+            formData.append('image', imageInput.files[0]);
+
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '⏳ Processing...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/add_face', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert(result.message, 'success');
+                    form.reset(); // Clear the form
+                    loadKnownPeople(); // Refresh the list
+                } else {
+                    showAlert(result.message, 'error');
+                }
+            } catch (error) {
+                showAlert('An unexpected error occurred: ' + error, 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+            setTimeout(() => { alert.remove(); }, 5000);
+        }
+    </script>
+</body>
+</html>
