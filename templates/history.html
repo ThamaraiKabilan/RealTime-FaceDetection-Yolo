@@ -193,20 +193,6 @@
             font-weight: 500;
         }
 
-        .time-cell {
-            color: #7f8c8d;
-            font-size: 0.9em;
-        }
-
-        .detector-cell {
-            background: #ecf0f1;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8em;
-            font-weight: 600;
-            display: inline-block;
-        }
-
         .no-data {
             text-align: center;
             padding: 40px;
@@ -271,13 +257,11 @@
                         <tr>
                             <th>Name</th>
                             <th>Confidence</th>
-                            <th>Detection Time</th>
-                            <th>Detector Type</th>
                         </tr>
                     </thead>
                     <tbody id="historyTable">
                         <tr>
-                            <td colspan="4" class="loading">Loading detection history...</td>
+                            <td colspan="2" class="loading">Loading detection history...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -304,28 +288,28 @@
                 document.getElementById('statsGrid').innerHTML = `
                     <div class="stat-card">
                         <h3>Total Detections</h3>
-                        <div class="number">${stats.total_detections}</div>
+                        <div class="number">${stats.total_detections || 0}</div>
                         <div class="label">All Time</div>
                     </div>
                     <div class="stat-card">
                         <h3>Known Faces</h3>
-                        <div class="number" style="color: #2ecc71;">${stats.known_detections}</div>
+                        <div class="number" style="color: #2ecc71;">${stats.known_detections || 0}</div>
                         <div class="label">Recognized</div>
                     </div>
                     <div class="stat-card">
                         <h3>Unknown Faces</h3>
-                        <div class="number" style="color: #e74c3c;">${stats.unknown_detections}</div>
+                        <div class="number" style="color: #e74c3c;">${stats.unknown_detections || 0}</div>
                         <div class="label">Not Recognized</div>
                     </div>
                     <div class="stat-card">
                         <h3>Last 24 Hours</h3>
-                        <div class="number">${stats.recent_detections}</div>
+                        <div class="number">${stats.recent_detections || 0}</div>
                         <div class="label">Recent Activity</div>
                     </div>
                     <div class="stat-card">
                         <h3>Top Person</h3>
-                        <div class="number">${stats.top_person}</div>
-                        <div class="label">${stats.top_count} detections</div>
+                        <div class="number">${stats.top_person || 'None'}</div>
+                        <div class="label">${stats.top_count || 0} detections</div>
                     </div>
                 `;
             } catch (error) {
@@ -347,10 +331,10 @@
                 
                 const tableBody = document.getElementById('historyTable');
                 
-                if (history.length === 0) {
+                if (!history || history.length === 0) {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="4" class="no-data">
+                            <td colspan="2" class="no-data">
                                 📝 No detection history found. <br>
                                 <small>Start using the camera to see detections here.</small>
                             </td>
@@ -363,13 +347,11 @@
                 
                 history.forEach(detection => {
                     const row = document.createElement('tr');
-                    const nameClass = detection.name === 'Unknown' ? 'name-unknown' : 'name-known';
+                    const nameClass = detection.name && detection.name.toLowerCase() === 'unknown' ? 'name-unknown' : 'name-known';
                     
                     row.innerHTML = `
-                        <td class="name-cell ${nameClass}">${detection.name}</td>
-                        <td class="confidence-cell">${detection.confidence}</td>
-                        <td class="time-cell">${detection.time}</td>
-                        <td><span class="detector-cell">${detection.detector}</span></td>
+                        <td class="name-cell ${nameClass}">${detection.name || 'Unknown'}</td>
+                        <td class="confidence-cell">${detection.confidence || '0%'}</td>
                     `;
                     tableBody.appendChild(row);
                 });
@@ -377,8 +359,8 @@
                 console.error('Error loading history:', error);
                 document.getElementById('historyTable').innerHTML = `
                     <tr>
-                        <td colspan="4" class="no-data">
-                            ❌ Error loading detection history
+                        <td colspan="2" class="no-data">
+                            ❌ Error loading detection history: ${error.message}
                         </td>
                     </tr>
                 `;
@@ -398,7 +380,7 @@
                         alert('History cleared successfully!');
                         loadData();
                     } else {
-                        alert('Error: ' + result.message);
+                        alert('Error: ' + (result.message || 'Unknown error'));
                     }
                 } catch (error) {
                     alert('Error clearing history: ' + error.message);

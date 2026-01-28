@@ -72,14 +72,26 @@ class FaceDatabase:
         results = cursor.fetchall()
         conn.close()
         
-        # Convert to list of dictionaries
+        # Convert to list of dictionaries - FIXED FIELD NAMES
         history = []
         for row in results:
+            # Format the detection_time for better display
+            detection_time = row[2]
+            if detection_time:
+                try:
+                    # Convert to readable format
+                    dt = datetime.strptime(detection_time, '%Y-%m-%d %H:%M:%S')
+                    formatted_time = dt.strftime('%I:%M %p | %b %d, %Y')  # Example: "08:35 PM | Oct 24, 2024"
+                except:
+                    formatted_time = detection_time  # Fallback to original if parsing fails
+            else:
+                formatted_time = "Unknown time"
+                
             history.append({
                 "name": row[0],
                 "confidence": row[1],
-                "time": row[2],
-                "detector": row[3]
+                "detection_time": formatted_time,  # CHANGED FROM "time" TO "detection_time"
+                "detector_type": row[3]  # CHANGED FROM "detector" TO "detector_type"
             })
         
         return history
